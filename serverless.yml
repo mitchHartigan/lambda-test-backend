@@ -1,0 +1,16 @@
+service: lambda-test-backend
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  memorySize: 512
+  timeout: 10
+  stage: production
+  region: us-west-2
+
+functions:
+  api:
+    handler: lambda.universal
+    events:
+      - http: ANY {proxy+}
+      - http: ANY /
