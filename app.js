@@ -16,7 +16,7 @@ const _loadCollection = async () => {
   try {
     const client = new MongoClient(dbUrl);
     await client.connect();
-    let collection = client.db("mortgagebanking").collection("acronymsv3");
+    let collection = client.db("mortgagebanking").collection("acronymsv4");
 
     return collection;
   } catch (err) {
