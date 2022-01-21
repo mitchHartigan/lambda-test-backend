@@ -24,6 +24,29 @@ const _loadCollection = async () => {
   }
 };
 
+const _loadArticles = async () => {
+  try {
+    const client = new MongoClient(dbUrl);
+    await client.connect();
+    const collection = client.db("mortgagebanking").collection("articles");
+    return collection;
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+app.get("/articles", async (req, res) => {
+  try {
+    let collection = await _loadArticles();
+    collection.find({}).toArray((err, results) => {
+      if (err) console.log(err);
+      res.send(results);
+    });
+  } catch (err) {
+    console.log(err);
+  }
+});
+
 app.get("/search", async (req, res) => {
   try {
     let collection = await _loadCollection();
