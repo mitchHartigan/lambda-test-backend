@@ -75,6 +75,8 @@ const _loadMarkdown = async (filename, environment, callback) => {
   }
 };
 
+app.use("/static", express.static("static"));
+
 app.get("/markdown/production/:markdownFile", async (req, res) => {
   try {
     const validArticle = await _loadMarkdown(
