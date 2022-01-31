@@ -3,10 +3,10 @@
 const mongodb = require("mongodb");
 const fs = require("fs");
 
-const DOWNLOAD = async (client, filename) => {
+const DOWNLOAD = async (client, filename, environment) => {
   return new Promise((resolve, reject) => {
     try {
-      const db = client.db("mortgagebanking-production");
+      const db = client.db(`mortgagebanking-${environment}`);
 
       const bucket = new mongodb.GridFSBucket(db, {
         chunkSizeBytes: 1024,

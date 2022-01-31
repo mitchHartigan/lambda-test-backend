@@ -26,11 +26,13 @@ const _loadCollection = async () => {
   }
 };
 
-const _loadArticles = async () => {
+const _loadArticles = async (environment) => {
   try {
     const client = new MongoClient(dbUrl);
     await client.connect();
-    const collection = client.db("mortgagebanking").collection("articles");
+    const collection = client
+      .db(`mortgagebanking-${environment}`)
+      .collection("articles-metadata");
     return collection;
   } catch (err) {
     console.log(err);
@@ -47,14 +49,14 @@ const _parseTextFromMarkdown = async (file, callback) => {
   });
 };
 
-const _loadMarkdown = async (filename, callback) => {
+const _loadMarkdown = async (filename, environment, callback) => {
   try {
     const client = new MongoClient(dbUrl);
     await client.connect();
 
     const path = `/tmp/${filename}`;
 
-    const download = await DOWNLOAD(client, filename);
+    const download = await DOWNLOAD(client, filename, environment);
 
     if (download) {
       await _parseTextFromMarkdown(path, (text) => {
@@ -73,10 +75,11 @@ const _loadMarkdown = async (filename, callback) => {
   }
 };
 
-app.get("/markdown/:markdownFile", async (req, res) => {
+app.get("/markdown/production/:markdownFile", async (req, res) => {
   try {
     const validArticle = await _loadMarkdown(
       req.params.markdownFile,
+      "production",
       (text) => {
         if (text) {
           res.json({ validArticle: true, text: text });
@@ -92,9 +95,42 @@ app.get("/markdown/:markdownFile", async (req, res) => {
   }
 });
 
-app.get("/articles", async (req, res) => {
+app.get("/markdown/staging/:markdownFile", async (req, res) => {
   try {
-    let collection = await _loadArticles();
+    const validArticle = await _loadMarkdown(
+      req.params.markdownFile,
+      "staging",
+      (text) => {
+        if (text) {
+          res.json({ validArticle: true, text: text });
+        }
+      }
+    );
+    if (!validArticle) {
+      res.json({ validArticle: false, text: "" });
+    }
+  } catch (err) {
+    console.log(err);
+    res.json({ message: "failed?" });
+  }
+});
+
+app.get("/articles/staging", async (req, res) => {
+  try {
+    let collection = await _loadArticles("staging");
+    collection.find({}).toArray((err, results) => {
+      if (err) console.log(err);
+      res.send(results);
+    });
+  } catch (err) {
+    console.log(err);
+    res.send("Failed to retrieve from database.");
+  }
+});
+
+app.get("/articles/production", async (req, res) => {
+  try {
+    let collection = await _loadArticles("production");
     collection.find({}).toArray((err, results) => {
       if (err) console.log(err);
       res.send(results);
