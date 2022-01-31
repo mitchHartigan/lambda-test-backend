@@ -77,6 +77,7 @@ app.get("/markdown/:markdownFile", async (req, res) => {
       }
     });
   } catch (err) {
+    res.json({ mitchellMessage: "failed in app.get method." });
     console.log(err);
   }
 });
