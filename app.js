@@ -76,11 +76,15 @@ const _loadMarkdown = async (filename, environment, callback) => {
 };
 
 app.get("/static/2ae1a1_7f4a8fa04151482393b30763e9830e59.pdf", (req, res) => {
-  const data = fs.readFileSync(
+  const file = fs.createReadStream(
     "./static/2ae1a1_7f4a8fa04151482393b30763e9830e59.pdf"
   );
-  res.contentType("application/pdf");
-  res.send(data);
+  const stat = fs.statSync(
+    "./static/2ae1a1_7f4a8fa04151482393b30763e9830e59.pdf"
+  );
+  res.setHeader("Content-Length", stat.size);
+  res.setHeader("Content-Type", "application/pdf");
+  file.pipe(res);
 });
 
 app.get("/markdown/production/:markdownFile", async (req, res) => {
