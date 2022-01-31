@@ -42,7 +42,6 @@ const _parseTextFromMarkdown = async (file, callback) => {
     if (err) {
       console.log(err);
       console.log(`Failed to parse markdown file ${file}.`);
-      process.exit(1);
     }
     callback(data);
   });
@@ -53,7 +52,7 @@ const _loadMarkdown = async (filename, callback) => {
     const client = new MongoClient(dbUrl);
     await client.connect();
 
-    const path = `./temp/markdown/${filename}`;
+    const path = `/tmp/${filename}`;
 
     await DOWNLOAD(client, filename);
 
@@ -71,14 +70,16 @@ const _loadMarkdown = async (filename, callback) => {
 
 app.get("/markdown/:markdownFile", async (req, res) => {
   try {
-    _loadMarkdown(req.params.markdownFile, (text) => {
+    await _loadMarkdown(req.params.markdownFile, (text) => {
       if (text) {
         res.json({ text: text });
+      } else {
+        res.json({ message: "no text in _loadMarkdown" });
       }
     });
   } catch (err) {
-    res.json({ mitchellMessage: "failed in app.get method." });
     console.log(err);
+    res.json({ message: "failed?" });
   }
 });
 

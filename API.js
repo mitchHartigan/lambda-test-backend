@@ -14,7 +14,7 @@ const DOWNLOAD = async (client, filename) => {
 
     bucket
       .openDownloadStreamByName(filename)
-      .pipe(fs.createWriteStream(`./temp/markdown/${filename}`))
+      .pipe(fs.createWriteStream(`/tmp/${filename}`))
       .on("error", (err) => console.log(err))
       .on("finish", () => {
         console.log(`Finished download for ${filename}`);
