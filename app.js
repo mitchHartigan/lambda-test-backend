@@ -3,6 +3,8 @@
 const { MongoClient } = require("mongodb");
 const express = require("express");
 const cors = require("cors");
+const { DOWNLOAD } = require("./API");
+const fs = require("fs");
 
 const dbUrl = `mongodb+srv://admin:bjX2dGUEnrK4Zyd@cluster0.vl3pn.mongodb.net/food?retryWrites=true&w=majority`;
 
@@ -34,6 +36,50 @@ const _loadArticles = async () => {
     console.log(err);
   }
 };
+
+const _parseTextFromMarkdown = async (file, callback) => {
+  await fs.readFile(file, "utf-8", (err, data) => {
+    if (err) {
+      console.log(err);
+      console.log(`Failed to parse markdown file ${file}.`);
+      process.exit(1);
+    }
+    callback(data);
+  });
+};
+
+const _loadMarkdown = async (filename, callback) => {
+  try {
+    const client = new MongoClient(dbUrl);
+    await client.connect();
+
+    const path = `./temp/markdown/${filename}`;
+
+    await DOWNLOAD(client, filename);
+
+    await _parseTextFromMarkdown(path, (text) => {
+      callback(text);
+    });
+
+    await fs.unlink(path, () => {
+      console.log(`Removed temp file ${path}`);
+    });
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+app.get("/markdown/:markdownFile", async (req, res) => {
+  try {
+    _loadMarkdown(req.params.markdownFile, (text) => {
+      if (text) {
+        res.json({ text: text });
+      }
+    });
+  } catch (err) {
+    console.log(err);
+  }
+});
 
 app.get("/articles", async (req, res) => {
   try {
