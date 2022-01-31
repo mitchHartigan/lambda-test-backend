@@ -54,29 +54,38 @@ const _loadMarkdown = async (filename, callback) => {
 
     const path = `/tmp/${filename}`;
 
-    await DOWNLOAD(client, filename);
+    const download = await DOWNLOAD(client, filename);
 
-    await _parseTextFromMarkdown(path, (text) => {
-      callback(text);
-    });
+    if (download) {
+      await _parseTextFromMarkdown(path, (text) => {
+        callback(text);
+      });
 
-    await fs.unlink(path, () => {
-      console.log(`Removed temp file ${path}`);
-    });
-  } catch (err) {
-    console.log(err);
+      await fs.unlink(path, () => {
+        console.log(`Removed temp file ${path}`);
+      });
+      return true;
+    } else {
+      return false;
+    }
+  } catch {
+    return false;
   }
 };
 
 app.get("/markdown/:markdownFile", async (req, res) => {
   try {
-    await _loadMarkdown(req.params.markdownFile, (text) => {
-      if (text) {
-        res.json({ text: text });
-      } else {
-        res.json({ message: "no text in _loadMarkdown" });
+    const validArticle = await _loadMarkdown(
+      req.params.markdownFile,
+      (text) => {
+        if (text) {
+          res.json({ validArticle: true, text: text });
+        }
       }
-    });
+    );
+    if (!validArticle) {
+      res.json({ validArticle: false, text: "" });
+    }
   } catch (err) {
     console.log(err);
     res.json({ message: "failed?" });
