@@ -90,6 +90,7 @@ app.get("/articles", async (req, res) => {
     });
   } catch (err) {
     console.log(err);
+    res.send("Failed to retrieve from database.");
   }
 });
 
