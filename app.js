@@ -75,7 +75,11 @@ const _loadMarkdown = async (filename, environment, callback) => {
   }
 };
 
-app.use("/static", express.static("static"));
+app.get("/static/2ae1a1_7f4a8fa04151482393b30763e9830e59.pdf", (req, res) => {
+  res.sendFile("/static/2ae1a1_7f4a8fa04151482393b30763e9830e59.pdf", {
+    root: __dirname,
+  });
+});
 
 app.get("/markdown/production/:markdownFile", async (req, res) => {
   try {
