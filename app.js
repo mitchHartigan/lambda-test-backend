@@ -168,6 +168,22 @@ app.get("/images/staging/:imgFile", async (req, res) => {
   }
 });
 
+app.get("/images/production/:imgFile", async (req, res) => {
+  try {
+    const validImg = await _loadImg(
+      req.params.imgFile,
+      "production",
+      (base64Str) => {
+        if (base64Str) res.json({ url: base64Str });
+      }
+    );
+    if (!validImg) res.json({ validImg: false, url: "" });
+  } catch (err) {
+    console.log(err);
+    res.json({ message: "Failed. Internal server error." });
+  }
+});
+
 app.get("/articles/staging", async (req, res) => {
   try {
     let collection = await _loadArticles("staging");
