@@ -49,6 +49,43 @@ const _parseTextFromMarkdown = async (file, callback) => {
   });
 };
 
+const _genBase64FromImg = async (file, callback) => {
+  await fs.readFile(file, "base64", (err, data) => {
+    if (err) console.log(err, `Failed to parse base64 from file ${file}`);
+    callback(data);
+  });
+};
+
+const _loadImg = async (filename, environment, callback) => {
+  try {
+    const client = new MongoClient(dbUrl);
+    await client.connect();
+
+    const path = `/tmp/${filename}`;
+    const download = await DOWNLOAD(
+      client,
+      filename,
+      environment,
+      "articles-images"
+    );
+
+    if (download) {
+      await _genBase64FromImg(path, (data) => {
+        callback(data);
+      });
+
+      await fs.unlink(path, () => {
+        console.log(`Removed temp file ${path}`);
+      });
+
+      return true;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+};
+
 const _loadMarkdown = async (filename, environment, callback) => {
   try {
     const client = new MongoClient(dbUrl);
@@ -74,18 +111,6 @@ const _loadMarkdown = async (filename, environment, callback) => {
     return false;
   }
 };
-
-app.get("/static/2ae1a1_7f4a8fa04151482393b30763e9830e59.pdf", (req, res) => {
-  const file = fs.createReadStream(
-    "./static/2ae1a1_7f4a8fa04151482393b30763e9830e59.pdf"
-  );
-  const stat = fs.statSync(
-    "./static/2ae1a1_7f4a8fa04151482393b30763e9830e59.pdf"
-  );
-  res.setHeader("Content-Length", stat.size);
-  res.setHeader("Content-Type", "application/pdf");
-  file.pipe(res);
-});
 
 app.get("/markdown/production/:markdownFile", async (req, res) => {
   try {
@@ -123,7 +148,23 @@ app.get("/markdown/staging/:markdownFile", async (req, res) => {
     }
   } catch (err) {
     console.log(err);
-    res.json({ message: "failed?" });
+    res.json({ message: "Failed. Internal server error." });
+  }
+});
+
+app.get("/images/staging/:imgFile", async (req, res) => {
+  try {
+    const validImg = await _loadImg(
+      req.params.imgFile,
+      "staging",
+      (base64Str) => {
+        if (base64Str) res.json({ url: base64Str });
+      }
+    );
+    if (!validImg) res.json({ validImg: false, url: "" });
+  } catch (err) {
+    console.log(err);
+    res.json({ message: "Failed. Internal server error." });
   }
 });
 
