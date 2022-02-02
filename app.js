@@ -93,7 +93,12 @@ const _loadMarkdown = async (filename, environment, callback) => {
 
     const path = `/tmp/${filename}`;
 
-    const download = await DOWNLOAD(client, filename, environment, 'articles-markdown');
+    const download = await DOWNLOAD(
+      client,
+      filename,
+      environment,
+      "articles-markdown"
+    );
 
     if (download) {
       await _parseTextFromMarkdown(path, (text) => {
@@ -158,7 +163,8 @@ app.get("/images/staging/:imgFile", async (req, res) => {
       req.params.imgFile,
       "staging",
       (base64Str) => {
-        if (base64Str) res.json({ url: base64Str });
+        if (base64Str) res.json({ validImg: true, url: base64Str });
+        if (!base64Str) res.json({ validImg: false, url: "" });
       }
     );
     if (!validImg) res.json({ validImg: false, url: "" });
