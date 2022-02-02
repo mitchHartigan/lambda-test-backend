@@ -93,7 +93,7 @@ const _loadMarkdown = async (filename, environment, callback) => {
 
     const path = `/tmp/${filename}`;
 
-    const download = await DOWNLOAD(client, filename, environment);
+    const download = await DOWNLOAD(client, filename, environment, 'articles-markdown');
 
     if (download) {
       await _parseTextFromMarkdown(path, (text) => {
