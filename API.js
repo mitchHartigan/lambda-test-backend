@@ -15,8 +15,15 @@ const DOWNLOAD = async (client, filename, environment, bucketName) => {
 
       bucket
         .openDownloadStreamByName(filename)
+        .on("error", (err) => {
+          console.log(err);
+          resolve(false);
+        })
         .pipe(fs.createWriteStream(`/tmp/${filename}`))
-        .on("error", (err) => console.log(err))
+        .on("error", (err) => {
+          console.log(err);
+          resolve(false);
+        })
         .on("finish", () => {
           console.log(`Finished download for ${filename}`);
           resolve(true);
