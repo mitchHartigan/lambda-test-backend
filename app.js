@@ -14,10 +14,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
-const _loadCollection = async () => {
+const client = new MongoClient(dbUrl);
+await client.connect();
+
+const _loadCollection = async (client) => {
   try {
-    const client = new MongoClient(dbUrl);
-    await client.connect();
     let collection = client
       .db("mortgagebanking-production")
       .collection("acronyms");
@@ -28,10 +29,8 @@ const _loadCollection = async () => {
   }
 };
 
-const _loadArticles = async (environment) => {
+const _loadArticles = async (environment, client) => {
   try {
-    const client = new MongoClient(dbUrl);
-    await client.connect();
     const collection = client
       .db(`mortgagebanking-${environment}`)
       .collection("articles-metadata");
@@ -58,11 +57,8 @@ const _genBase64FromImg = async (file, callback) => {
   });
 };
 
-const _loadImg = async (filename, environment, callback) => {
+const _loadImg = async (filename, environment, callback, client) => {
   try {
-    const client = new MongoClient(dbUrl);
-    await client.connect();
-
     const path = `/tmp/${filename}`;
     const download = await DOWNLOAD(
       client,
@@ -88,11 +84,8 @@ const _loadImg = async (filename, environment, callback) => {
   }
 };
 
-const _loadMarkdown = async (filename, environment, callback) => {
+const _loadMarkdown = async (filename, environment, callback, client) => {
   try {
-    const client = new MongoClient(dbUrl);
-    await client.connect();
-
     const path = `/tmp/${filename}`;
 
     const download = await DOWNLOAD(
