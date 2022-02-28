@@ -14,7 +14,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
-const client = new MongoClient(dbUrl);
+var client = new MongoClient(dbUrl);
 client.connect();
 
 const _loadCollection = async (client) => {
@@ -121,7 +121,8 @@ app.get("/markdown/production/:markdownFile", async (req, res) => {
         if (text) {
           res.json({ validArticle: true, text: text });
         }
-      }
+      },
+      client
     );
     if (!validArticle) {
       res.json({ validArticle: false, text: "" });
@@ -141,7 +142,8 @@ app.get("/markdown/staging/:markdownFile", async (req, res) => {
         if (text) {
           res.json({ validArticle: true, text: text });
         }
-      }
+      },
+      client
     );
     if (!validArticle) {
       res.json({ validArticle: false, text: "" });
@@ -160,7 +162,8 @@ app.get("/images/staging/:imgFile", async (req, res) => {
       (base64Str) => {
         if (base64Str) res.json({ validImg: true, url: base64Str });
         if (!base64Str) res.json({ validImg: false, url: "" });
-      }
+      },
+      client
     );
     if (!validImg) res.json({ validImg: false, url: "" });
   } catch (err) {
@@ -176,7 +179,8 @@ app.get("/images/production/:imgFile", async (req, res) => {
       "production",
       (base64Str) => {
         if (base64Str) res.json({ url: base64Str });
-      }
+      },
+      client
     );
     if (!validImg) res.json({ validImg: false, url: "" });
   } catch (err) {
@@ -187,7 +191,7 @@ app.get("/images/production/:imgFile", async (req, res) => {
 
 app.get("/articles/staging", async (req, res) => {
   try {
-    let collection = await _loadArticles("staging");
+    let collection = await _loadArticles("staging", client);
     collection.find({}).toArray((err, results) => {
       if (err) console.log(err);
       res.send(results);
@@ -200,7 +204,7 @@ app.get("/articles/staging", async (req, res) => {
 
 app.get("/articles/production", async (req, res) => {
   try {
-    let collection = await _loadArticles("production");
+    let collection = await _loadArticles("production", client);
     collection.find({}).toArray((err, results) => {
       if (err) console.log(err);
       res.send(results);
@@ -213,7 +217,7 @@ app.get("/articles/production", async (req, res) => {
 
 app.get("/search", async (req, res) => {
   try {
-    let collection = await _loadCollection();
+    let collection = await _loadCollection(client);
 
     let term = req.query.term;
 
