@@ -15,7 +15,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
 const client = new MongoClient(dbUrl);
-await client.connect();
+client.connect();
 
 const _loadCollection = async (client) => {
   try {
