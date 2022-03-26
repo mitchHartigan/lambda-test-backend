@@ -252,6 +252,13 @@ app.get("/search", async (req, res) => {
   }
 });
 
+app.post("/admin", (req, res) => {
+  const { email, password } = req.body;
+
+  if (email && password) {
+  }
+});
+
 app.get("/", (req, res) => {
   res.status(200).send({ serverMessage: "app running!" });
 });
