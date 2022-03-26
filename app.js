@@ -5,6 +5,7 @@ const express = require("express");
 const cors = require("cors");
 const { DOWNLOAD } = require("./API");
 const fs = require("fs");
+const bcrypt = require("bcrypt");
 
 const dbUrl = `mongodb+srv://admin:bjX2dGUEnrK4Zyd@cluster0.vl3pn.mongodb.net/food?retryWrites=true&w=majority`;
 
@@ -34,6 +35,17 @@ const _loadArticles = async (environment, client) => {
     const collection = client
       .db(`mortgagebanking-${environment}`)
       .collection("articles-metadata");
+    return collection;
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+const _loadUsers = async (environment, client) => {
+  try {
+    const collection = client
+      .db(`mortgagebanking-${environment}`)
+      .collection("users");
     return collection;
   } catch (err) {
     console.log(err);
@@ -252,10 +264,29 @@ app.get("/search", async (req, res) => {
   }
 });
 
-app.post("/admin", (req, res) => {
-  const { email, password } = req.body;
+app.post("/admin", async (req, res) => {
+  const { name, password } = req.body;
 
-  if (email && password) {
+  if (name && password) {
+    const users = await _loadUsers("staging", client);
+    console.log(users);
+    const storedName = users.name;
+    const storedPassword = users.password;
+
+    if (storedName && storedPassword) {
+      bcrypt.compare(password, storedPassword, (err, passwordsMatch) => {
+        if (err) console.log(err);
+        if (passwordsMatch) {
+          console.log("nice");
+          res.status(200).send({ serverMessage: "hell yeah brother" });
+        } else {
+          console.log("not nice");
+          res.status(400).send({ serverMessage: "Passwords do not match." });
+        }
+      });
+    } else {
+      console.log("no stored name/password");
+    }
   }
 });
 
