@@ -46,7 +46,9 @@ const _loadUsers = async (environment, client) => {
     const collection = client
       .db(`mortgagebanking-${environment}`)
       .collection("users");
-    return collection;
+    if (collection) {
+      return collection.find({}).toArray();
+    }
   } catch (err) {
     console.log(err);
   }
@@ -267,25 +269,40 @@ app.get("/search", async (req, res) => {
 app.post("/admin", async (req, res) => {
   const { name, password } = req.body;
 
+  const findUserInDB = (name, users) => {
+    for (let userObj of users) {
+      if (userObj.name === name) return userObj;
+    }
+  };
+
   if (name && password) {
     const users = await _loadUsers("staging", client);
-    console.log(users);
-    const storedName = users.name;
-    const storedPassword = users.password;
+    const matchingUser = findUserInDB(name, users);
 
-    if (storedName && storedPassword) {
-      bcrypt.compare(password, storedPassword, (err, passwordsMatch) => {
-        if (err) console.log(err);
-        if (passwordsMatch) {
-          console.log("nice");
-          res.status(200).send({ serverMessage: "hell yeah brother" });
-        } else {
-          console.log("not nice");
-          res.status(400).send({ serverMessage: "Passwords do not match." });
-        }
-      });
+    if (!matchingUser) {
+      res.status(400).send({ serverMessage: "User not found in database." });
     } else {
-      console.log("no stored name/password");
+      const storedName = matchingUser.name;
+      const storedPassword = matchingUser.password;
+
+      // Can we assume that the checks above will ensure that storedName and
+      // storedPassword will exist? If so we can get rid of the lower else statement.
+      if (storedName && storedPassword) {
+        bcrypt.compare(password, storedPassword, (err, passwordsMatch) => {
+          if (err) console.log(err);
+          if (passwordsMatch)
+            res.status(200).send({ authenticated: true, serverMessage: "" });
+          else {
+            res.status(200).send({
+              authenticated: false,
+              serverMessage: "Passwords do not match.",
+            });
+          }
+        });
+        // This one below.
+      } else {
+        console.log("no stored name/password");
+      }
     }
   }
 });
