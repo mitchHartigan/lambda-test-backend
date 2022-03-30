@@ -269,6 +269,27 @@ app.get("/search", async (req, res) => {
   }
 });
 
+app.post("/checkAuthentication", async (req, res) => {
+  const { token } = req.body;
+
+  if (!token) {
+    res.status(400).send({ validToken: false });
+    return;
+  }
+
+  console.log("req.body", req.body);
+  console.log("token", token);
+
+  const validToken = jwt.verify(token, process.env.SECRET_OR_KEY);
+
+  if (validToken) {
+    res.status(200).send({ validToken: true });
+    console.log("valid token");
+  } else {
+    res.status(200).send({ validToken: false });
+  }
+});
+
 app.post("/admin", async (req, res) => {
   const { name, password } = req.body;
 
