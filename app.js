@@ -6,6 +6,9 @@ const cors = require("cors");
 const { DOWNLOAD } = require("./API");
 const fs = require("fs");
 const bcrypt = require("bcrypt");
+const dotenv = require("dotenv");
+dotenv.config();
+const jwt = require("jsonwebtoken");
 
 const dbUrl = `mongodb+srv://admin:bjX2dGUEnrK4Zyd@cluster0.vl3pn.mongodb.net/food?retryWrites=true&w=majority`;
 
@@ -290,9 +293,15 @@ app.post("/admin", async (req, res) => {
       if (storedName && storedPassword) {
         bcrypt.compare(password, storedPassword, (err, passwordsMatch) => {
           if (err) console.log(err);
-          if (passwordsMatch)
-            res.status(200).send({ authenticated: true, serverMessage: "" });
-          else {
+          if (passwordsMatch) {
+            const payload = { name: name };
+            const token = jwt.sign(payload, process.env.SECRET_OR_KEY);
+            res.status(200).send({
+              token: token,
+              authenticated: true,
+              serverMessage: "",
+            });
+          } else {
             res.status(200).send({
               authenticated: false,
               serverMessage: "Passwords do not match.",
