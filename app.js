@@ -290,6 +290,17 @@ app.post("/checkAuthentication", async (req, res) => {
   }
 });
 
+app.post("/uploadAcronym", (req, res) => {
+  const newAcronym = req.body;
+
+  if (newAcronym) {
+    // upload that shit
+    res.status(200).send({ serverMessage: "new Acronym recieved, hell yeah" });
+  } else {
+    res.status(404).send({ serverMessage: "uh oh" });
+  }
+});
+
 app.post("/admin", async (req, res) => {
   const { name, password } = req.body;
 
