@@ -21,6 +21,15 @@ app.use(cors());
 var client = new MongoClient(dbUrl);
 client.connect();
 
+const fetchPendingAcronyms = async (client, environment) => {
+  let collection = client
+    .db(`mortgagebanking-${environment}`)
+    .collection("pending-acronyms");
+
+  const results = await collection.find({}).toArray();
+  return results;
+};
+
 const uploadPendingAcronym = (acronym, client, environment, callback) => {
   let collection = client
     .db(`mortgagebanking-${environment}`)
@@ -304,6 +313,18 @@ app.post("/checkAuthentication", async (req, res) => {
     console.log("valid token");
   } else {
     res.status(200).send({ validToken: false });
+  }
+});
+
+app.get("/pendingAcronyms", async (req, res) => {
+  const pendingAcronysm = await fetchPendingAcronyms(client, "staging");
+
+  if (pendingAcronysm) {
+    res.status(200).send({ pendingAcronysm: pendingAcronysm });
+  } else {
+    res.status(500).send({
+      serverMessage: "Failed to retrieve pending acronyms from MongoDB.",
+    });
   }
 });
 
