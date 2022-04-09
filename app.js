@@ -21,6 +21,23 @@ app.use(cors());
 var client = new MongoClient(dbUrl);
 client.connect();
 
+const uploadPendingAcronym = (acronym, client, environment, callback) => {
+  let collection = client
+    .db(`mortgagebanking-${environment}`)
+    .collection("pending-acronyms");
+
+  collection.insertOne(acronym, (err, result) => {
+    if (err) callback(false);
+
+    if (result.acknowledged) {
+      console.log(
+        `Inserted 1 new document into mortgagebanking-${environment}.`
+      );
+      callback(true);
+    }
+  });
+};
+
 const _loadCollection = async (client) => {
   try {
     let collection = client
@@ -290,14 +307,30 @@ app.post("/checkAuthentication", async (req, res) => {
   }
 });
 
-app.post("/uploadAcronym", (req, res) => {
+app.post("/uploadAcronym", async (req, res) => {
   const newAcronym = req.body;
 
   if (newAcronym) {
     // upload that shit
-    res.status(200).send({ serverMessage: "new Acronym recieved, hell yeah" });
+
+    uploadPendingAcronym(newAcronym, client, "staging", (success) => {
+      if (success) {
+        res
+          .status(200)
+          .send({ serverMessage: "new Acronym recieved, hell yeah" });
+      } else {
+        res.status(200).send({
+          serverMessage:
+            "Error: Acronym recieved, but failed to upload to MongoDB.",
+        });
+      }
+    });
+
+    // if (!newAcronym)
   } else {
-    res.status(404).send({ serverMessage: "uh oh" });
+    res.status(404).send({
+      serverMessage: "Acronym not provided, or incorrect acronym format.",
+    });
   }
 });
 
