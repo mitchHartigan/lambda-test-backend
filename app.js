@@ -317,10 +317,10 @@ app.post("/checkAuthentication", async (req, res) => {
 });
 
 app.get("/pendingAcronyms", async (req, res) => {
-  const pendingAcronysm = await fetchPendingAcronyms(client, "staging");
+  const pendingAcronyms = await fetchPendingAcronyms(client, "staging");
 
-  if (pendingAcronysm) {
-    res.status(200).send({ pendingAcronysm: pendingAcronysm });
+  if (pendingAcronyms) {
+    res.status(200).send({ pendingAcronyms: pendingAcronyms });
   } else {
     res.status(500).send({
       serverMessage: "Failed to retrieve pending acronyms from MongoDB.",
