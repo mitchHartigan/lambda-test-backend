@@ -1,6 +1,7 @@
 "use strict";
 
 const { MongoClient } = require("mongodb");
+const mongodb = require("mongodb");
 const express = require("express");
 const cors = require("cors");
 const { DOWNLOAD } = require("./API");
@@ -407,12 +408,15 @@ function removePendingAcronym(acronym, environment, callback) {
     .db(`mortgagebanking-${environment}`)
     .collection("pending-acronyms");
 
-  collection.deleteOne(acronym, (err, res) => {
-    if (err) console.log(err);
-    console.log("res", res);
-    console.log(`Deleted object ${acronym} from pending-acronyms.`);
-    callback();
-  });
+  collection.deleteOne(
+    { _id: new mongodb.ObjectId(acronym._id) },
+    (err, res) => {
+      if (err) console.log(err);
+      console.log("res", res);
+      console.log(`Deleted object ${acronym} from pending-acronyms.`);
+      callback();
+    }
+  );
 }
 
 function addPendingAcronym(acronym, environment, callback) {
@@ -427,12 +431,6 @@ function addPendingAcronym(acronym, environment, callback) {
     console.log(`Added acronym to acronyms.`);
   });
 
-  // I have no idea why or how the _id COMES BACK after calling delete, but it does. I'm
-  // completely baffled as to how this is even possible. Maybe I don't fully understand
-  // how delete works. But, we need to delete the _id again before we call remove,
-  // otherwise it can't find it.
-  delete acronym._id;
-
   removePendingAcronym(acronym, "staging", () => {
     callback();
   });
@@ -440,7 +438,6 @@ function addPendingAcronym(acronym, environment, callback) {
 
 app.post("/rejectPendingAcronym", (req, res) => {
   const acronym = req.body;
-  delete acronym._id;
 
   removePendingAcronym(acronym, "staging", () => {
     res.status(200).send({
@@ -452,9 +449,6 @@ app.post("/rejectPendingAcronym", (req, res) => {
 
 app.post("/acceptPendingAcronym", (req, res) => {
   const acronym = req.body;
-  delete acronym._id;
-
-  console.log("acronym after delete:", acronym);
 
   addPendingAcronym(acronym, "staging", () => {
     res.status(200).send({
