@@ -337,9 +337,10 @@ app.post("/uploadAcronym", async (req, res) => {
 
     uploadPendingAcronym(newAcronym, client, "staging", (success) => {
       if (success) {
-        res
-          .status(200)
-          .send({ serverMessage: "new Acronym recieved, hell yeah" });
+        res.status(200).send({
+          serverMessage: "new Acronym recieved successfully.",
+          accepted: true,
+        });
       } else {
         res.status(200).send({
           serverMessage:
