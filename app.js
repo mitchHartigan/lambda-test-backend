@@ -402,6 +402,68 @@ app.post("/admin", async (req, res) => {
   }
 });
 
+function removePendingAcronym(acronym, environment, callback) {
+  let collection = client
+    .db(`mortgagebanking-${environment}`)
+    .collection("pending-acronyms");
+
+  collection.deleteOne(acronym, (err, res) => {
+    if (err) console.log(err);
+    console.log("res", res);
+    console.log(`Deleted object ${acronym} from pending-acronyms.`);
+    callback();
+  });
+}
+
+function addPendingAcronym(acronym, environment, callback) {
+  console.log("acronym inside addPending", acronym);
+  let collection = client
+    .db(`mortgagebanking-${environment}`)
+    .collection("acronyms");
+
+  collection.insertOne(acronym, (err, res) => {
+    if (err) console.log(err);
+    console.log("res", res);
+    console.log(`Added acronym to acronyms.`);
+  });
+
+  // I have no idea why or how the _id COMES BACK after calling delete, but it does. I'm
+  // completely baffled as to how this is even possible. Maybe I don't fully understand
+  // how delete works. But, we need to delete the _id again before we call remove,
+  // otherwise it can't find it.
+  delete acronym._id;
+
+  removePendingAcronym(acronym, "staging", () => {
+    callback();
+  });
+}
+
+app.post("/rejectPendingAcronym", (req, res) => {
+  const acronym = req.body;
+  delete acronym._id;
+
+  removePendingAcronym(acronym, "staging", () => {
+    res.status(200).send({
+      serverMessage: "requested acronym removed.",
+      deletionConfirmed: true,
+    });
+  });
+});
+
+app.post("/acceptPendingAcronym", (req, res) => {
+  const acronym = req.body;
+  delete acronym._id;
+
+  console.log("acronym after delete:", acronym);
+
+  addPendingAcronym(acronym, "staging", () => {
+    res.status(200).send({
+      serverMessage: "Added acronym to production.",
+      acceptConfirmed: true,
+    });
+  });
+});
+
 app.get("/", (req, res) => {
   res.status(200).send({ serverMessage: "app running!" });
 });
