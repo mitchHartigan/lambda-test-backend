@@ -442,12 +442,13 @@ const updateAcronyms = async (client, environment, acronyms) => {
     .db(`mortgagebanking-${environment}`)
     .collection("pending-acronyms");
 
-  await collection.deleteMany({}, (err, res) => {
+  collection.deleteMany({}, (err, res) => {
     if (err) throw err;
-    collection.insertMany(acronyms, (err, res) => {
-      if (err) throw err;
-      console.log("Added new documents to collection.");
-    });
+  });
+
+  collection.insertMany(acronyms, (err, res) => {
+    if (err) throw err;
+    console.log("Added new documents to collection.");
   });
 };
 
