@@ -318,7 +318,7 @@ app.post("/checkAuthentication", async (req, res) => {
 });
 
 app.get("/pendingAcronyms", async (req, res) => {
-  const pendingAcronyms = await fetchPendingAcronyms(client, "staging");
+  const pendingAcronyms = await fetchPendingAcronyms(client, "production");
 
   if (pendingAcronyms) {
     res.status(200).send({ pendingAcronyms: pendingAcronyms });
@@ -335,7 +335,7 @@ app.post("/uploadAcronym", async (req, res) => {
   if (newAcronym) {
     // upload that shit
 
-    uploadPendingAcronym(newAcronym, client, "staging", (success) => {
+    uploadPendingAcronym(newAcronym, client, "production", (success) => {
       if (success) {
         res.status(200).send({
           serverMessage: "new Acronym recieved successfully.",
@@ -432,7 +432,7 @@ function addPendingAcronym(acronym, environment, callback) {
     console.log(`Added acronym to acronyms.`);
   });
 
-  removePendingAcronym(acronym, "staging", () => {
+  removePendingAcronym(acronym, "production", () => {
     callback();
   });
 }
@@ -454,14 +454,14 @@ const updateAcronyms = async (client, environment, acronyms) => {
 
 app.post("/uploadPendingAcronyms", async (req, res) => {
   const acronyms = req.body;
-  await updateAcronyms(client, "staging", acronyms);
-  res.status(200).send({ serverMessage: "ayy lmao?", acceptConfirmed: true });
+  await updateAcronyms(client, "production", acronyms);
+  res.status(200).send({ acceptConfirmed: true });
 });
 
 app.post("/rejectPendingAcronym", (req, res) => {
   const acronym = req.body;
 
-  removePendingAcronym(acronym, "staging", () => {
+  removePendingAcronym(acronym, "production", () => {
     res.status(200).send({
       serverMessage: "requested acronym removed.",
       deletionConfirmed: true,
@@ -472,7 +472,7 @@ app.post("/rejectPendingAcronym", (req, res) => {
 app.post("/acceptPendingAcronym", (req, res) => {
   const acronym = req.body;
 
-  addPendingAcronym(acronym, "staging", () => {
+  addPendingAcronym(acronym, "production", () => {
     res.status(200).send({
       serverMessage: "Added acronym to production.",
       acceptConfirmed: true,
