@@ -437,19 +437,18 @@ function addPendingAcronym(acronym, environment, callback) {
   });
 }
 
-const updateAcronyms = async (client, environment, acronyms) => {
+const updateAcronym = async (client, environment, acronym) => {
   let collection = client
     .db(`mortgagebanking-${environment}`)
     .collection("pending-acronyms");
 
-  collection.deleteMany({}, (err, res) => {
-    if (err) throw err;
-  });
+  const { _id, ...parsedAcronym } = acronym;
 
-  collection.insertMany(acronyms, (err, res) => {
-    if (err) throw err;
-    console.log("Added new documents to collection.");
-  });
+  const result = await collection.updateOne(
+    { _id: new mongodb.ObjectId(_id) },
+    { $set: parsedAcronym }
+  );
+  console.log(result);
 };
 
 app.post("/uploadPendingAcronyms", async (req, res) => {
