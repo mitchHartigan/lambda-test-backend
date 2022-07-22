@@ -431,7 +431,7 @@ function addPendingAcronym(acronym, environment, callback) {
     console.log("res", res);
     console.log(`Added acronym to acronyms.`);
   });
-
+  items;
   removePendingAcronym(acronym, "production", () => {
     callback();
   });
@@ -477,6 +477,15 @@ app.post("/acceptPendingAcronym", (req, res) => {
       acceptConfirmed: true,
     });
   });
+});
+
+app.get("/chartData", async (req, res) => {
+  let collection = client
+    .db(`mortgagebanking-staging`)
+    .collection("state-chart");
+
+  const items = await collection.find({}).toArray();
+  res.status(200).json(items);
 });
 
 app.get("/", (req, res) => {
