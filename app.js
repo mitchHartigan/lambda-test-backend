@@ -493,6 +493,8 @@ app.get("/", (req, res) => {
 });
 
 app.post("/chartCitations", async (req, res) => {
+  const collection = req.body;
+
   let collection = client
     .db("mortgagebanking-staging")
     .collection("chart-citations");
