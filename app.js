@@ -492,4 +492,13 @@ app.get("/", (req, res) => {
   res.status(200).send({ serverMessage: "app running!" });
 });
 
+app.post("/chartCitations", async (req, res) => {
+  let collection = client
+    .db("mortgagebanking-staging")
+    .collection("chart-citations");
+
+  const citationObj = await collection.find({}).toArray();
+  res.status(200).json(citationObj);
+});
+
 module.exports = app;
